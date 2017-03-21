@@ -18,7 +18,26 @@ import java.util.List;
 public class MySimpleAdapter extends RecyclerView.Adapter<MyHolder> {
     private LayoutInflater mLayoutInflater;
     private Context mContext;
-    private List<String> mDatas;
+    protected List<String> mDatas;
+
+    /**
+     * item点击事件接口，
+     */
+    public interface OnItemClickListener {
+        void onItemClick(View view, int position);
+
+        void onItemLongClick(View view, int position);
+    }
+
+    private OnItemClickListener mOnitemClickListener;
+
+    public OnItemClickListener getmOnitemClickListener() {
+        return mOnitemClickListener;
+    }
+
+    public void setmOnitemClickListener(OnItemClickListener mOnitemClickListener) {
+        this.mOnitemClickListener = mOnitemClickListener;
+    }
 
     public MySimpleAdapter(Context mContext, List<String> mDatas) {
         this.mContext = mContext;
@@ -38,11 +57,51 @@ public class MySimpleAdapter extends RecyclerView.Adapter<MyHolder> {
     }
 
     @Override
-    public void onBindViewHolder(MyHolder holder, int position) {
+    public void onBindViewHolder(final MyHolder holder, final int position) {
         holder.mTextView.setText(mDatas.get(position));
+        setUpItemEvent(holder);
+
     }
 
+    /**
+     * 点击事件回调接口
+     *
+     * @param holder
+     */
+    protected void setUpItemEvent(final MyHolder holder) {
+        if (mOnitemClickListener != null) {
+            holder.mTextView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //获取最新的item位置
+                    int layoutPosition = holder.getLayoutPosition();
+                    mOnitemClickListener.onItemClick(holder.mTextView, layoutPosition);
+                }
+            });
 
+            holder.mTextView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    //获取最新的item位置
+                    int layoutPosition = holder.getLayoutPosition();
+                    mOnitemClickListener.onItemLongClick(holder.mTextView, layoutPosition);
+                    return false;
+                }
+            });
+        }
+    }
+
+    public void addData(int pos) {
+        mDatas.add(pos, "insert one");
+//    notifyDataSetChanged();这里不用这个
+        notifyItemInserted(pos);
+    }
+
+    public void deleteData(int pos) {
+        mDatas.remove(pos);
+
+        notifyItemRemoved(pos);
+}
     @Override
     public int getItemCount() {
         return mDatas.size();
